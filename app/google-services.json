@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "400855884203",
+    "project_id": "rentease-54381",
+    "storage_bucket": "rentease-54381.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:400855884203:android:91a71624220a6f4bdd32ee",
+        "android_client_info": {
+          "package_name": "com.deepseeek.rentEase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9yn9qwKtZjlZejIDc-2mBjaT-hqJ71i8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
