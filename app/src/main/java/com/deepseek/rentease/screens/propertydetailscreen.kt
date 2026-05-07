@@ -2,6 +2,7 @@ package com.deepseek.rentease.screens
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -22,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.deepseek.rentease.models.Property
+import com.deepseek.rentease.navigation.Screen
 import com.deepseek.rentease.ui.theme.FavoriteColor
 import com.deepseek.rentease.ui.theme.PriceColor
 import com.deepseek.rentease.ui.theme.RentalAppTheme
@@ -36,24 +38,98 @@ fun PropertyDetailScreen(
     val property by viewModel.property.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
+    val bookingState by viewModel.bookingState.collectAsState()
     val context = LocalContext.current
+
+    var showBookingDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(propertyId) {
         viewModel.loadProperty(propertyId)
+    }
+
+    LaunchedEffect(bookingState) {
+        if (bookingState is PropertyDetailViewModel.BookingState.Success) {
+            Toast.makeText(context, "Booking request sent successfully!", Toast.LENGTH_SHORT).show()
+            showBookingDialog = false
+            viewModel.resetBookingState()
+        } else if (bookingState is PropertyDetailViewModel.BookingState.Error) {
+            Toast.makeText(context, (bookingState as PropertyDetailViewModel.BookingState.Error).message, Toast.LENGTH_LONG).show()
+            viewModel.resetBookingState()
+        }
+    }
+
+    if (showBookingDialog && property != null) {
+        BookingDialog(
+            onDismiss = { showBookingDialog = false },
+            onConfirm = { message ->
+                viewModel.bookViewing(property!!, message)
+            },
+            isLoading = bookingState is PropertyDetailViewModel.BookingState.Loading
+        )
     }
 
     PropertyDetailFullContent(
         property = property,
         isFavorite = isFavorite,
         isLoading = isLoading,
+        isOwner = property?.ownerId == currentUserId,
         onNavigateBack = { navController.navigateUp() },
         onToggleFavorite = { property?.let { viewModel.toggleFavorite(it) } },
+        onEditClick = {
+            property?.let {
+                navController.navigate(Screen.EditProperty.createRoute(it.id))
+            }
+        },
         onCallClick = { phone ->
             val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
             context.startActivity(intent)
         },
         onBookClick = {
-            // Handle booking logic
+            showBookingDialog = true
+        }
+    )
+}
+
+@Composable
+fun BookingDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    isLoading: Boolean
+) {
+    var message by remember { mutableStateOf("I'm interested in viewing this property. Please let me know when it's available.") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Book a Viewing") },
+        text = {
+            Column {
+                Text("Send a message to the landlord:")
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = message,
+                    onValueChange = { message = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(message) },
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Send Request")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isLoading) {
+                Text("Cancel")
+            }
         }
     )
 }
@@ -64,8 +140,10 @@ fun PropertyDetailFullContent(
     property: Property?,
     isFavorite: Boolean,
     isLoading: Boolean,
+    isOwner: Boolean,
     onNavigateBack: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onEditClick: () -> Unit,
     onCallClick: (String) -> Unit,
     onBookClick: () -> Unit
 ) {
@@ -79,13 +157,19 @@ fun PropertyDetailFullContent(
                     }
                 },
                 actions = {
-                    property?.let {
-                        IconButton(onClick = onToggleFavorite) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Favorite",
-                                tint = if (isFavorite) FavoriteColor else LocalContentColor.current
-                            )
+                    if (isOwner) {
+                        IconButton(onClick = onEditClick) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        }
+                    } else {
+                        property?.let {
+                            IconButton(onClick = onToggleFavorite) {
+                                Icon(
+                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorite",
+                                    tint = if (isFavorite) FavoriteColor else LocalContentColor.current
+                                )
+                            }
                         }
                     }
                 }
@@ -104,6 +188,7 @@ fun PropertyDetailFullContent(
             } else {
                 PropertyDetailScrollableContent(
                     property = property,
+                    isOwner = isOwner,
                     onCallClick = { onCallClick(property.ownerPhone) },
                     onBookClick = onBookClick
                 )
@@ -115,6 +200,7 @@ fun PropertyDetailFullContent(
 @Composable
 fun PropertyDetailScrollableContent(
     property: Property,
+    isOwner: Boolean,
     onCallClick: () -> Unit,
     onBookClick: () -> Unit
 ) {
@@ -251,27 +337,39 @@ fun PropertyDetailScrollableContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onCallClick,
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 12.dp)
+            if (!isOwner) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Default.Phone, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Call")
+                    OutlinedButton(
+                        onClick = onCallClick,
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 12.dp)
+                    ) {
+                        Icon(Icons.Default.Phone, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Call")
+                    }
+                    Button(
+                        onClick = onBookClick,
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 12.dp)
+                    ) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Book Viewing")
+                    }
                 }
+            } else {
                 Button(
-                    onClick = onBookClick,
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 12.dp)
+                    onClick = { /* Could be delete property */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null)
+                    Icon(Icons.Default.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Book Viewing")
+                    Text("Delete Property")
                 }
             }
 
@@ -322,8 +420,10 @@ fun PropertyDetailPreview() {
             ),
             isFavorite = true,
             isLoading = false,
+            isOwner = false,
             onNavigateBack = {},
             onToggleFavorite = {},
+            onEditClick = {},
             onCallClick = {},
             onBookClick = {}
         )

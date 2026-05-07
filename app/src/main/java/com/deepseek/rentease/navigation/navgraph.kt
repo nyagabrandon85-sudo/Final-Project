@@ -39,6 +39,13 @@ fun NavGraph(navController: NavHostController, startDestination: String) {
         composable(Screen.UploadProperty.route) {
             UploadPropertyScreen(navController = navController)
         }
+        composable(
+            route = Screen.EditProperty.route,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val propertyId = backStackEntry.arguments?.getString("propertyId") ?: ""
+            EditPropertyScreen(navController = navController, propertyId = propertyId)
+        }
         composable(Screen.Bookings.route) {
             BookingsScreen(navController = navController)
         }

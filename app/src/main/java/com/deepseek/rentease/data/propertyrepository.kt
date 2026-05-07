@@ -1,22 +1,23 @@
 package com.deepseek.rentease.data
 
-
+import android.net.Uri
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import com.deepseek.rentease.models.Property
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class PropertyRepository {
     private val firestore = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
     suspend fun getProperties(): List<Property> {
         return try {
             val snapshot = firestore.collection("properties")
-                .whereEqualTo("isAvailable", true)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .await()
             snapshot.toObjects(Property::class.java)
@@ -27,11 +28,10 @@ class PropertyRepository {
 
     suspend fun searchProperties(query: String, minPrice: Double?, maxPrice: Double?, type: String?): List<Property> {
         return try {
-            var firestoreQuery = firestore.collection("properties")
-                .whereEqualTo("isAvailable", true)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-
-            val results = firestoreQuery.get().await().toObjects(Property::class.java)
+            val results = firestore.collection("properties")
+                .get()
+                .await()
+                .toObjects(Property::class.java)
 
             results.filter { property ->
                 val matchesQuery = query.isBlank() ||
@@ -57,17 +57,15 @@ class PropertyRepository {
         }
     }
 
-    suspend fun addProperty(property: Property, imageUris: List<android.net.Uri>): Result<String> {
+    suspend fun addProperty(property: Property, imageUris: List<Uri>): Result<String> {
         return try {
             val propertyId = UUID.randomUUID().toString()
             val imageUrls = mutableListOf<String>()
 
-            // Upload images
+            // Upload images to Cloudinary
             imageUris.forEach { uri ->
-                val ref = storage.reference.child("properties/$propertyId/${UUID.randomUUID()}")
-                ref.putFile(uri).await()
-                val url = ref.downloadUrl.await()
-                imageUrls.add(url.toString())
+                val url = uploadToCloudinary(uri)
+                imageUrls.add(url)
             }
 
             val propertyWithImages = property.copy(
@@ -82,11 +80,28 @@ class PropertyRepository {
         }
     }
 
+    private suspend fun uploadToCloudinary(uri: Uri): String = suspendCancellableCoroutine { continuation ->
+        MediaManager.get().upload(uri)
+            .unsigned("rentEase uploads") // Your preset name
+            .option("folder", "properties")
+            .callback(object : UploadCallback {
+                override fun onStart(requestId: String) {}
+                override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) {}
+                override fun onSuccess(requestId: String, resultData: Map<*, *>) {
+                    val url = resultData["secure_url"] as String
+                    continuation.resume(url)
+                }
+                override fun onError(requestId: String, error: ErrorInfo) {
+                    continuation.resumeWithException(Exception(error.description))
+                }
+                override fun onReschedule(requestId: String, error: ErrorInfo) {}
+            }).dispatch()
+    }
+
     suspend fun getMyProperties(ownerId: String): List<Property> {
         return try {
             val snapshot = firestore.collection("properties")
                 .whereEqualTo("ownerId", ownerId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .await()
             snapshot.toObjects(Property::class.java)
@@ -94,5 +109,22 @@ class PropertyRepository {
             emptyList()
         }
     }
-}
 
+    suspend fun updateProperty(property: Property): Result<Unit> {
+        return try {
+            firestore.collection("properties").document(property.id).set(property).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteProperty(propertyId: String): Result<Unit> {
+        return try {
+            firestore.collection("properties").document(propertyId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

@@ -11,6 +11,9 @@ sealed class Screen(val route: String) {
     object Search : Screen("search")
     object Favorites : Screen("favorites")
     object UploadProperty : Screen("upload_property")
+    object EditProperty : Screen("edit_property/{propertyId}") {
+        fun createRoute(propertyId: String) = "edit_property/$propertyId"
+    }
     object Bookings : Screen("bookings")
     object Profile : Screen("profile")
 }

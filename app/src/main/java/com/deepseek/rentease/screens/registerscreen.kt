@@ -1,11 +1,15 @@
 package com.deepseek.rentease.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -58,6 +62,7 @@ fun RegisterContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -65,7 +70,7 @@ fun RegisterContent(
         Text(
             text = "Create Account",
             style = MaterialTheme.typography.headlineLarge,
-            color = PrimaryColor
+            color = Color.Red
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -73,7 +78,15 @@ fun RegisterContent(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Full Name") },
+            label = { Text("Full Name", fontWeight = FontWeight.Bold, color = Color.White) },
+            textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.White),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.White,
+                focusedLabelColor = Color.Red,
+                unfocusedLabelColor = Color.White,
+                cursorColor = Color.Red
+            ),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -83,7 +96,15 @@ fun RegisterContent(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text("Email", fontWeight = FontWeight.Bold, color = Color.White) },
+            textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.White),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.White,
+                focusedLabelColor = Color.Red,
+                unfocusedLabelColor = Color.White,
+                cursorColor = Color.Red
+            ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -97,7 +118,15 @@ fun RegisterContent(
         OutlinedTextField(
             value = phone,
             onValueChange = { phone = it },
-            label = { Text("Phone Number") },
+            label = { Text("Phone Number", fontWeight = FontWeight.Bold, color = Color.White) },
+            textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.White),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.White,
+                focusedLabelColor = Color.Red,
+                unfocusedLabelColor = Color.White,
+                cursorColor = Color.Red
+            ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
                 imeAction = ImeAction.Next
@@ -111,7 +140,15 @@ fun RegisterContent(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text("Password", fontWeight = FontWeight.Bold, color = Color.White) },
+            textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.White),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.White,
+                focusedLabelColor = Color.Red,
+                unfocusedLabelColor = Color.White,
+                cursorColor = Color.Red
+            ),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -123,7 +160,7 @@ fun RegisterContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("I am a:", style = MaterialTheme.typography.titleMedium)
+        Text("I am a:", style = MaterialTheme.typography.titleMedium, color = Color.White)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -132,12 +169,36 @@ fun RegisterContent(
             FilterChip(
                 selected = selectedRole == "tenant",
                 onClick = { selectedRole = "tenant" },
-                label = { Text("Tenant") }
+                label = { Text("Tenant", color = if (selectedRole == "tenant") Color.Black else Color.White) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color.Red,
+                    containerColor = Color.Transparent,
+                    labelColor = Color.White,
+                    selectedLabelColor = Color.Black
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedRole == "tenant",
+                    borderColor = Color.White,
+                    selectedBorderColor = Color.Red
+                )
             )
             FilterChip(
                 selected = selectedRole == "landlord",
                 onClick = { selectedRole = "landlord" },
-                label = { Text("Landlord") }
+                label = { Text("Landlord", color = if (selectedRole == "landlord") Color.Black else Color.White) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color.Red,
+                    containerColor = Color.Transparent,
+                    labelColor = Color.White,
+                    selectedLabelColor = Color.Black
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedRole == "landlord",
+                    borderColor = Color.White,
+                    selectedBorderColor = Color.Red
+                )
             )
         }
 
@@ -157,7 +218,8 @@ fun RegisterContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            enabled = registerState !is AuthViewModel.AuthState.Loading
+            enabled = registerState !is AuthViewModel.AuthState.Loading,
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {
             if (registerState is AuthViewModel.AuthState.Loading) {
                 CircularProgressIndicator(
@@ -172,7 +234,7 @@ fun RegisterContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(onClick = onNavigateBack) {
-            Text("Already have an account? Sign In")
+            Text("Already have an account? Sign In", color = Color.White)
         }
     }
 }

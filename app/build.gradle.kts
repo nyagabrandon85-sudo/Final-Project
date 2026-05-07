@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.deepseek.rentease"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.deepseeek.rentEase"
@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.cloudinary.android)
     
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

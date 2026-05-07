@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.deepseeek.rentEase" />
+                  <option name="mobileSdkAppId" value="1:400855884203:android:91a71624220a6f4bdd32ee" />
+                  <option name="projectId" value="rentease-54381" />
+                  <option name="projectNumber" value="400855884203" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
