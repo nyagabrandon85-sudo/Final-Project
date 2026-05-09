@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.painterResource
+import com.deepseek.rentease.R
 import com.deepseek.rentease.navigation.Screen
 import com.deepseek.rentease.models.Property
 import com.deepseek.rentease.ui.theme.PriceColor
@@ -69,7 +71,18 @@ fun HomeContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("RentalHub", color = Color.Red) },
+                title = { 
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_rentease_logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = Color.Unspecified
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("RentalHub", color = Color.Red)
+                    }
+                },
                 actions = {
                     IconButton(onClick = onSearchClick) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
