@@ -43,11 +43,17 @@ class AuthRepository {
     }
 
     suspend fun getUserRole(): String? {
-        val uid = currentUser?.uid ?: return null
+        val uid = currentUser?.uid ?: run {
+            android.util.Log.e("AuthRepository", "No current user UID found")
+            return null
+        }
         return try {
             val doc = firestore.collection("users").document(uid).get().await()
-            doc.getString("role")
+            val role = doc.getString("role")
+            android.util.Log.d("AuthRepository", "Fetched role for $uid: $role")
+            role
         } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Error fetching user role", e)
             null
         }
     }

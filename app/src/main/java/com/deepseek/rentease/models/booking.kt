@@ -8,8 +8,10 @@ data class Booking(
     val tenantName: String = "",
     val tenantPhone: String = "",
     val landlordId: String = "",
+    val landlordName: String = "",
     val landlordPhone: String = "",
     val message: String = "",
     val status: String = "pending", // pending, approved, rejected
+    val viewedByLandlord: Boolean = false,
     val requestedAt: Long = System.currentTimeMillis()
 )

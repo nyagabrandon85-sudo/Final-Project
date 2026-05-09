@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1024dp"
+    android:height="1024dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <!-- Background Circle (Black) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M512,512m-512,0a512,512 0,1 1,1024 0a512,512 0,1 1,-1024 0" />
+
+    <!-- Stylized House/Location Pin (Red) -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M512,250 L250,450 L250,750 L400,750 L400,550 L624,550 L624,750 L774,750 L774,450 Z" />
+
+    <!-- Accent Line (Orange/White) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M480,300 L544,300 L544,400 L480,400 Z" />
+</vector>

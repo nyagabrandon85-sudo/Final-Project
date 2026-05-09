@@ -25,19 +25,46 @@ class BookingsViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _unreadCount = MutableStateFlow(0)
+    val unreadCount: StateFlow<Int> = _unreadCount
+
     fun loadBookings() {
         viewModelScope.launch {
             _isLoading.value = true
+            
+            // 1. Fetch data in parallel for speed
+            val roleDeferred = viewModelScope.launch {
+                val role = authRepository.getUserRole()?.lowercase()?.trim()
+                android.util.Log.d("BookingsViewModel", "Detected role: $role")
+                _userRole.value = role
+            }
+            
             _myBookings.value = bookingRepository.getMyBookings()
-            _receivedBookings.value = bookingRepository.getReceivedBookings()
+            
+            // 2. Fetch received bookings. 
+            // We fetch them anyway and let the UI decide whether to show the tab.
+            // This is safer in case the role check is delayed.
+            val received = bookingRepository.getReceivedBookings()
+            _receivedBookings.value = received
+            
+            // Update unread count
+            _unreadCount.value = received.count { !it.viewedByLandlord }
+
             _isLoading.value = false
         }
     }
 
-    fun loadUserRole() {
+    fun markAllReceivedAsViewed() {
         viewModelScope.launch {
-            _userRole.value = authRepository.getUserRole()
+            bookingRepository.markReceivedBookingsAsViewed()
+            _unreadCount.value = 0
+            // Optional: update the list locally to show they are read if UI depends on it
+            _receivedBookings.value = _receivedBookings.value.map { it.copy(viewedByLandlord = true) }
         }
+    }
+
+    fun loadUserRole() {
+        // Already handled in loadBookings for efficiency
     }
 
     fun updateStatus(bookingId: String, status: String) {

@@ -117,9 +117,16 @@ fun RegisterContent(
 
         OutlinedTextField(
             value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone Number", fontWeight = FontWeight.Bold, color = Color.White) },
+            onValueChange = { 
+                // Only allow numbers and prevent users from deleting the + prefix if you want to force it
+                if (it.all { char -> char.isDigit() || char == '+' }) {
+                    phone = it
+                }
+            },
+            label = { Text("Phone Number (e.g. 0712...)", fontWeight = FontWeight.Bold, color = Color.White) },
+            placeholder = { Text("0712345678", color = Color.Gray) },
             textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.White),
+            prefix = { Text("+254 ", color = Color.Red) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color.Red,
                 unfocusedBorderColor = Color.White,

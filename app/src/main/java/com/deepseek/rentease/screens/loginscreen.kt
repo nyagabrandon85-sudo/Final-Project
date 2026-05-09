@@ -8,8 +8,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.deepseek.rentease.navigation.Screen
-import com.deepseek.rentease.ui.theme.PrimaryColor
 import com.deepseek.rentease.ui.theme.RentalAppTheme
 import com.deepseek.rentease.viewmodels.AuthViewModel
 
@@ -64,7 +66,7 @@ fun LoginContent(
         Text(
             text = "Welcome Back",
             style = MaterialTheme.typography.headlineLarge,
-            color = PrimaryColor
+            color = Color.Magenta
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -81,7 +83,16 @@ fun LoginContent(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email", fontWeight = FontWeight.Bold) },
-            textStyle = TextStyle(fontWeight = FontWeight.Bold),
+            textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.Black),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFFF9800),
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = Color(0xFFFF9800),
+                unfocusedLabelColor = Color.Gray,
+                cursorColor = Color(0xFFFF9800),
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -96,7 +107,16 @@ fun LoginContent(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password", fontWeight = FontWeight.Bold) },
-            textStyle = TextStyle(fontWeight = FontWeight.Bold),
+            textStyle = TextStyle(fontWeight = FontWeight.Bold, color = Color.Black),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFFF9800),
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = Color(0xFFFF9800),
+                unfocusedLabelColor = Color.Gray,
+                cursorColor = Color(0xFFFF9800),
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            ),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -122,7 +142,8 @@ fun LoginContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            enabled = loginState !is AuthViewModel.AuthState.Loading
+            enabled = loginState !is AuthViewModel.AuthState.Loading,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
         ) {
             if (loginState is AuthViewModel.AuthState.Loading) {
                 CircularProgressIndicator(
@@ -137,7 +158,16 @@ fun LoginContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(onClick = onNavigateToRegister) {
-            Text("Don't have an account? Register")
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.Blue)) {
+                        append("Don't have an account? ")
+                    }
+                    withStyle(style = SpanStyle(color = Color.Red, fontWeight = FontWeight.Bold)) {
+                        append("Register")
+                    }
+                }
+            )
         }
     }
 }

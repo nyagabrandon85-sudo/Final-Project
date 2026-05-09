@@ -40,9 +40,11 @@ fun PropertyDetailScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val currentUserId by viewModel.currentUserId.collectAsState()
     val bookingState by viewModel.bookingState.collectAsState()
+    val deleteState by viewModel.deleteState.collectAsState()
     val context = LocalContext.current
 
     var showBookingDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(propertyId) {
         viewModel.loadProperty(propertyId)
@@ -59,6 +61,15 @@ fun PropertyDetailScreen(
         }
     }
 
+    LaunchedEffect(deleteState) {
+        if (deleteState is PropertyDetailViewModel.DeleteState.Success) {
+            Toast.makeText(context, "Property deleted successfully", Toast.LENGTH_SHORT).show()
+            navController.navigateUp()
+        } else if (deleteState is PropertyDetailViewModel.DeleteState.Error) {
+            Toast.makeText(context, (deleteState as PropertyDetailViewModel.DeleteState.Error).message, Toast.LENGTH_LONG).show()
+        }
+    }
+
     if (showBookingDialog && property != null) {
         BookingDialog(
             onDismiss = { showBookingDialog = false },
@@ -66,6 +77,27 @@ fun PropertyDetailScreen(
                 viewModel.bookViewing(property!!, message)
             },
             isLoading = bookingState is PropertyDetailViewModel.BookingState.Loading
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Property") },
+            text = { Text("Are you sure you want to delete this property? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.deleteProperty(propertyId) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 
@@ -81,6 +113,7 @@ fun PropertyDetailScreen(
                 navController.navigate(Screen.EditProperty.createRoute(it.id))
             }
         },
+        onDeleteClick = { showDeleteDialog = true },
         onCallClick = { phone ->
             val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
             context.startActivity(intent)
@@ -144,6 +177,7 @@ fun PropertyDetailFullContent(
     onNavigateBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     onCallClick: (String) -> Unit,
     onBookClick: () -> Unit
 ) {
@@ -190,7 +224,8 @@ fun PropertyDetailFullContent(
                     property = property,
                     isOwner = isOwner,
                     onCallClick = { onCallClick(property.ownerPhone) },
-                    onBookClick = onBookClick
+                    onBookClick = onBookClick,
+                    onDeleteClick = onDeleteClick
                 )
             }
         }
@@ -202,7 +237,8 @@ fun PropertyDetailScrollableContent(
     property: Property,
     isOwner: Boolean,
     onCallClick: () -> Unit,
-    onBookClick: () -> Unit
+    onBookClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -363,7 +399,7 @@ fun PropertyDetailScrollableContent(
                 }
             } else {
                 Button(
-                    onClick = { /* Could be delete property */ },
+                    onClick = onDeleteClick,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
@@ -424,6 +460,7 @@ fun PropertyDetailPreview() {
             onNavigateBack = {},
             onToggleFavorite = {},
             onEditClick = {},
+            onDeleteClick = {},
             onCallClick = {},
             onBookClick = {}
         )

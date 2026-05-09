@@ -33,6 +33,9 @@ class PropertyDetailViewModel : ViewModel() {
     private val _bookingState = MutableStateFlow<BookingState>(BookingState.Idle)
     val bookingState: StateFlow<BookingState> = _bookingState
 
+    private val _deleteState = MutableStateFlow<DeleteState>(DeleteState.Idle)
+    val deleteState: StateFlow<DeleteState> = _deleteState
+
     fun loadProperty(propertyId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -64,6 +67,12 @@ class PropertyDetailViewModel : ViewModel() {
                 return@launch
             }
 
+            if (property.ownerId.isBlank()) {
+                android.util.Log.e("PropertyDetailVM", "Property ownerId is blank for property ${property.id}")
+                _bookingState.value = BookingState.Error("This property has no owner information. Cannot book.")
+                return@launch
+            }
+
             val booking = Booking(
                 propertyId = property.id,
                 propertyTitle = property.title,
@@ -71,16 +80,30 @@ class PropertyDetailViewModel : ViewModel() {
                 tenantName = user.name,
                 tenantPhone = user.phone,
                 landlordId = property.ownerId,
+                landlordName = property.ownerName,
                 landlordPhone = property.ownerPhone,
                 message = message,
                 status = "pending"
             )
 
+            android.util.Log.d("PropertyDetailVM", "Creating booking: $booking")
             val result = bookingRepository.createBooking(booking)
             if (result.isSuccess) {
                 _bookingState.value = BookingState.Success
             } else {
                 _bookingState.value = BookingState.Error(result.exceptionOrNull()?.message ?: "Booking failed")
+            }
+        }
+    }
+
+    fun deleteProperty(propertyId: String) {
+        viewModelScope.launch {
+            _deleteState.value = DeleteState.Loading
+            val result = propertyRepository.deleteProperty(propertyId)
+            if (result.isSuccess) {
+                _deleteState.value = DeleteState.Success
+            } else {
+                _deleteState.value = DeleteState.Error(result.exceptionOrNull()?.message ?: "Delete failed")
             }
         }
     }
@@ -94,5 +117,12 @@ class PropertyDetailViewModel : ViewModel() {
         object Loading : BookingState()
         object Success : BookingState()
         data class Error(val message: String) : BookingState()
+    }
+
+    sealed class DeleteState {
+        object Idle : DeleteState()
+        object Loading : DeleteState()
+        object Success : DeleteState()
+        data class Error(val message: String) : DeleteState()
     }
 }

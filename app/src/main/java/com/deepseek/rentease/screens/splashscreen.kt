@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.deepseek.rentease.navigation.Screen
-import com.deepseek.rentease.ui.theme.PrimaryColor
 import com.deepseek.rentease.ui.theme.RentalAppTheme
 import kotlinx.coroutines.delay
 
@@ -45,7 +44,7 @@ fun SplashContent(scale: Float) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PrimaryColor),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -58,12 +57,12 @@ fun SplashContent(scale: Float) {
                 modifier = Modifier
                     .size(120.dp)
                     .scale(scale),
-                tint = Color.White
+                tint = Color.Red
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "RentalHub",
-                color = Color.White,
+                color = Color.Red,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.scale(scale)
@@ -71,7 +70,7 @@ fun SplashContent(scale: Float) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Find Your Perfect Home",
-                color = Color.White.copy(alpha = 0.8f),
+                color = Color.Red.copy(alpha = 0.8f),
                 fontSize = 16.sp,
                 modifier = Modifier.scale(scale)
             )
